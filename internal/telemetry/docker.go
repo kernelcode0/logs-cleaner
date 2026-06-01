@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/myorg/docker-cleanup-agent/internal/docker"
+	"github.com/kernelcode0/logs-cleaner/internal/docker"
 )
 
 // DockerTelemetry holds Docker daemon statistics.

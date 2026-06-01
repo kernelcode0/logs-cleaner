@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/myorg/docker-cleanup-agent/internal/config"
-	"github.com/myorg/docker-cleanup-agent/internal/docker"
-	"github.com/myorg/docker-cleanup-agent/internal/storage"
+	"github.com/kernelcode0/logs-cleaner/internal/config"
+	"github.com/kernelcode0/logs-cleaner/internal/docker"
+	"github.com/kernelcode0/logs-cleaner/internal/storage"
 )
 
 var ErrAlreadyRunning = errors.New("cleanup: a run is already in progress")

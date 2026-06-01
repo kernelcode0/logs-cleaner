@@ -15,8 +15,8 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build \
     -ldflags="-s -w \
-      -X github.com/myorg/docker-cleanup-agent/internal/version.Version=${VERSION} \
-      -X github.com/myorg/docker-cleanup-agent/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      -X github.com/kernelcode0/logs-cleaner/internal/version.Version=${VERSION} \
+      -X github.com/kernelcode0/logs-cleaner/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     -o /docker-cleanup-agent \
     ./cmd/agent
 

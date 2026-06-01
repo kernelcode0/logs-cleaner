@@ -8,17 +8,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/myorg/docker-cleanup-agent/internal/cleanup"
-	"github.com/myorg/docker-cleanup-agent/internal/config"
-	"github.com/myorg/docker-cleanup-agent/internal/docker"
-	"github.com/myorg/docker-cleanup-agent/internal/email"
-	"github.com/myorg/docker-cleanup-agent/internal/metrics"
-	"github.com/myorg/docker-cleanup-agent/internal/notification"
-	"github.com/myorg/docker-cleanup-agent/internal/reporting"
-	"github.com/myorg/docker-cleanup-agent/internal/scheduler"
-	"github.com/myorg/docker-cleanup-agent/internal/server"
-	"github.com/myorg/docker-cleanup-agent/internal/storage"
-	"github.com/myorg/docker-cleanup-agent/internal/telemetry"
+	"github.com/kernelcode0/logs-cleaner/internal/cleanup"
+	"github.com/kernelcode0/logs-cleaner/internal/config"
+	"github.com/kernelcode0/logs-cleaner/internal/docker"
+	"github.com/kernelcode0/logs-cleaner/internal/email"
+	"github.com/kernelcode0/logs-cleaner/internal/metrics"
+	"github.com/kernelcode0/logs-cleaner/internal/notification"
+	"github.com/kernelcode0/logs-cleaner/internal/reporting"
+	"github.com/kernelcode0/logs-cleaner/internal/scheduler"
+	"github.com/kernelcode0/logs-cleaner/internal/server"
+	"github.com/kernelcode0/logs-cleaner/internal/storage"
+	"github.com/kernelcode0/logs-cleaner/internal/telemetry"
 )
 
 func main() {

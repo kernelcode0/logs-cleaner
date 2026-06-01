@@ -12,11 +12,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/myorg/docker-cleanup-agent/internal/cleanup"
-	"github.com/myorg/docker-cleanup-agent/internal/config"
-	"github.com/myorg/docker-cleanup-agent/internal/docker"
-	"github.com/myorg/docker-cleanup-agent/internal/metrics"
-	"github.com/myorg/docker-cleanup-agent/internal/storage"
+	"github.com/kernelcode0/logs-cleaner/internal/cleanup"
+	"github.com/kernelcode0/logs-cleaner/internal/config"
+	"github.com/kernelcode0/logs-cleaner/internal/docker"
+	"github.com/kernelcode0/logs-cleaner/internal/metrics"
+	"github.com/kernelcode0/logs-cleaner/internal/storage"
 )
 
 // Server is the HTTP server with all routes mounted.

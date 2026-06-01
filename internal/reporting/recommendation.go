@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/myorg/docker-cleanup-agent/internal/docker"
+	"github.com/kernelcode0/logs-cleaner/internal/docker"
 )
 
 // Recommendation flags a container for log rotation setup.
