@@ -1,0 +1,34 @@
+# Build output
+docker-cleanup-agent
+dist/
+
+# Environment files — never commit credentials
+.env
+.env.local
+.env.*.local
+
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+data/
+
+# Go toolchain
+*.test
+*.out
+coverage.html
+vendor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker
+docker-cleanup-agent.tar
+.claude
