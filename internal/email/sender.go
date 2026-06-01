@@ -8,7 +8,7 @@ import (
 
 	gomail "github.com/wneessen/go-mail"
 
-	"github.com/myorg/docker-cleanup-agent/internal/config"
+	"github.com/kernelcode0/logs-cleaner/internal/config"
 )
 
 // Sender sends HTML emails via SMTP.

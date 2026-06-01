@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/myorg/docker-cleanup-agent/internal/docker"
-	"github.com/myorg/docker-cleanup-agent/internal/version"
+	"github.com/kernelcode0/logs-cleaner/internal/docker"
+	"github.com/kernelcode0/logs-cleaner/internal/version"
 )
 
 type healthResponse struct {

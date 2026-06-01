@@ -6,8 +6,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/myorg/docker-cleanup-agent/internal/cleanup"
-	"github.com/myorg/docker-cleanup-agent/internal/telemetry"
+	"github.com/kernelcode0/logs-cleaner/internal/cleanup"
+	"github.com/kernelcode0/logs-cleaner/internal/telemetry"
 )
 
 // Registry holds all Prometheus collectors for the agent.
