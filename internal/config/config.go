@@ -144,6 +144,12 @@ func Load() (*Config, error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
+	// Explicit bindings for the short NOTIF_ form used in .env
+	v.BindEnv("notifications.slack.enabled", "AGENT_NOTIF_SLACK_ENABLED")
+	v.BindEnv("notifications.slack.webhook_url", "AGENT_NOTIF_SLACK_WEBHOOK_URL")
+	v.BindEnv("notifications.teams.enabled", "AGENT_NOTIF_TEAMS_ENABLED")
+	v.BindEnv("notifications.teams.webhook_url", "AGENT_NOTIF_TEAMS_WEBHOOK_URL")
+
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, fmt.Errorf("reading config: %w", err)

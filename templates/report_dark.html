@@ -196,12 +196,7 @@
           <td style="color:#f472b6">{{.ContainerName}}</td>
           <td>{{.Image}}</td>
           <td>{{formatMB .SizeMB}}</td>
-          <td>
-            {{range $.ContainerInsights}}
-              {{if eq .ID $.CleanupResult.TopConsumers}}{{end}}
-            {{end}}
-            &mdash;
-          </td>
+          <td>&mdash;</td>
         </tr>
         {{end}}
       </tbody>
