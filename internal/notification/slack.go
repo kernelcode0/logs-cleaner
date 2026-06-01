@@ -34,34 +34,77 @@ func (n *SlackNotifier) Notify(ctx context.Context, r reporting.Report) error {
 		return nil
 	}
 
-	payload := map[string]any{
-		"blocks": []any{
-			map[string]any{
-				"type": "header",
-				"text": map[string]any{
-					"type": "plain_text",
-					"text": fmt.Sprintf("Docker Cleanup: %s", r.ServerID),
-				},
-			},
-			map[string]any{
-				"type": "section",
-				"fields": []any{
-					map[string]any{"type": "mrkdwn", "text": fmt.Sprintf("*Logs Cleaned:* %d", r.CleanupResult.LogsCleaned)},
-					map[string]any{"type": "mrkdwn", "text": fmt.Sprintf("*Space Reclaimed:* %.1f MB", r.CleanupResult.SpaceReclaimedMB)},
-					map[string]any{"type": "mrkdwn", "text": fmt.Sprintf("*Host:* %s", r.Server.Hostname)},
-					map[string]any{"type": "mrkdwn", "text": fmt.Sprintf("*Duration:* %dms", r.CleanupResult.DurationMS)},
-				},
-			},
-			map[string]any{
-				"type": "context",
-				"elements": []any{
-					map[string]any{
-						"type": "mrkdwn",
-						"text": fmt.Sprintf("%s | dry_run: %v", r.GeneratedAt.UTC().Format(time.RFC3339), r.CleanupResult.DryRun),
-					},
-				},
+	statusIcon := "✅"
+	if r.CleanupResult.DryRun {
+		statusIcon = "🛡️"
+	}
+
+	bodyText := fmt.Sprintf(
+		"*Host:* %s (%s)\n"+
+			"*OS:* %s\n"+
+			"*Logs Cleaned:* %d\n"+
+			"*Space Reclaimed:* %.1f MB\n"+
+			"*Memory Used:* %s (%.0f%%)\n"+
+			"*Disk Used:* %s (%.0f%%)\n"+
+			"*Containers:* %d running / %d total\n"+
+			"*Images:* %d (%d dangling)",
+		r.Server.Hostname, r.Server.PublicIP,
+		r.Server.OSInfo,
+		r.CleanupResult.LogsCleaned,
+		r.CleanupResult.SpaceReclaimedMB,
+		r.Server.RAMUsedFormatted(), r.Server.RAMUsedPct,
+		r.Server.DiskUsedFormatted(), r.Server.DiskUsedPct,
+		r.Docker.RunningContainers, r.Docker.TotalContainers,
+		r.Docker.ImageCount, r.Docker.DanglingImageCount,
+	)
+
+	blocks := []any{
+		map[string]any{
+			"type": "header",
+			"text": map[string]any{
+				"type": "plain_text",
+				"text": fmt.Sprintf("%s Docker Cleanup: %s", statusIcon, r.ServerID),
+				"emoji": true,
 			},
 		},
+		map[string]any{
+			"type": "section",
+			"text": map[string]any{
+				"type": "mrkdwn",
+				"text": bodyText,
+			},
+		},
+	}
+
+	if len(r.CleanupResult.TopConsumers) > 0 {
+		topText := "*Top Space Consumers:*\n"
+		for i, c := range r.CleanupResult.TopConsumers {
+			if i >= 3 {
+				break
+			}
+			topText += fmt.Sprintf("• `%s` (%.1f MB)\n", c.ContainerName, c.SizeMB)
+		}
+		blocks = append(blocks, map[string]any{
+			"type": "section",
+			"text": map[string]any{
+				"type": "mrkdwn",
+				"text": topText,
+			},
+		})
+	}
+
+	blocks = append(blocks, map[string]any{
+		"type": "context",
+		"elements": []any{
+			map[string]any{
+				"type": "mrkdwn",
+				"text": fmt.Sprintf("Duration: %dms | dry_run: %v | %s", r.CleanupResult.DurationMS, r.CleanupResult.DryRun, r.GeneratedAt.UTC().Format(time.RFC3339)),
+			},
+		},
+	})
+
+	payload := map[string]any{
+		"blocks": blocks,
 	}
 
 	return n.post(ctx, payload)
