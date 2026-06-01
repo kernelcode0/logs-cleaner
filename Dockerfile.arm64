@@ -1,0 +1,41 @@
+# Stage 1: Builder
+# Use BUILDPLATFORM so the builder runs on the host's native architecture (e.g. AMD64)
+# avoiding "exec format error" when running apk/go commands.
+FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS builder
+
+ARG VERSION=dev
+
+WORKDIR /build
+
+RUN apk add --no-cache git ca-certificates tzdata
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# Cross-compile to ARM64
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
+    go build \
+    -ldflags="-s -w \
+      -X github.com/kernelcode0/logs-cleaner/internal/version.Version=${VERSION} \
+      -X github.com/kernelcode0/logs-cleaner/internal/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    -o /docker-cleanup-agent \
+    ./cmd/agent
+
+# Stage 2: Runtime (scratch = minimal attack surface)
+FROM scratch
+
+# CA certs for HTTPS (public IP lookup + SMTP TLS)
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+
+# Copy the statically-linked arm64 binary
+COPY --from=builder /docker-cleanup-agent /docker-cleanup-agent
+
+# Run as nobody (UID 65534)
+USER 65534:65534
+
+EXPOSE 8080
+
+ENTRYPOINT ["/docker-cleanup-agent"]
