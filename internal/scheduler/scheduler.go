@@ -8,7 +8,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/myorg/docker-cleanup-agent/internal/config"
+	"github.com/kernelcode0/logs-cleaner/internal/config"
 )
 
 // Scheduler manages the periodic execution of cleanup cycles.

@@ -1,4 +1,4 @@
-module github.com/myorg/docker-cleanup-agent
+module github.com/kernelcode0/logs-cleaner
 
 go 1.22
 

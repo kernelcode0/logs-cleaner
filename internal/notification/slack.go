@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/myorg/docker-cleanup-agent/internal/config"
-	"github.com/myorg/docker-cleanup-agent/internal/reporting"
+	"github.com/kernelcode0/logs-cleaner/internal/config"
+	"github.com/kernelcode0/logs-cleaner/internal/reporting"
 )
 
 // SlackNotifier sends cleanup summaries to a Slack incoming webhook.

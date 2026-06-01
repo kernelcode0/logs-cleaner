@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/myorg/docker-cleanup-agent/internal/config"
+	"github.com/kernelcode0/logs-cleaner/internal/config"
 )
 
 // Policy defines how a log file is cleaned.

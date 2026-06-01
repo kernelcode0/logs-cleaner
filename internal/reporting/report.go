@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/myorg/docker-cleanup-agent/internal/cleanup"
-	"github.com/myorg/docker-cleanup-agent/internal/storage"
-	"github.com/myorg/docker-cleanup-agent/internal/telemetry"
+	"github.com/kernelcode0/logs-cleaner/internal/cleanup"
+	"github.com/kernelcode0/logs-cleaner/internal/storage"
+	"github.com/kernelcode0/logs-cleaner/internal/telemetry"
 )
 
 // SelfMonSnapshot captures agent health counters at report time.

@@ -1,4 +1,4 @@
-# docker-cleanup-agent
+# logs-cleaner
 
 A production-grade Go application that monitors and cleans Docker container log files, collects server and Docker telemetry, and delivers professional HTML reports via email. Designed to run on any Linux Docker host.
 
@@ -55,16 +55,16 @@ docker-compose logs -f
 
 ```bash
 docker run -d \
-  --name docker-cleanup-agent \
+  --name logs-cleaner \
   --restart unless-stopped \
   --user 0:0 \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -v /var/lib/docker/containers:/var/lib/docker/containers:rw \
   -v ./data:/data \
-  -v ./config/config.yaml:/etc/docker-cleanup-agent/config.yaml:ro \
+  -v ./config/config.yaml:/etc/logs-cleaner/config.yaml:ro \
   -p 8080:8080 \
   --env-file .env \
-  docker-cleanup-agent:latest
+  logs-cleaner:latest
 ```
 
 ---
@@ -179,10 +179,10 @@ Returns top containers by cleanup frequency in the rolling window.
 
 ```bash
 # Requirements: Go 1.22+, CGO_ENABLED=0
-CGO_ENABLED=0 go build -o docker-cleanup-agent ./cmd/agent
+CGO_ENABLED=0 go build -o logs-cleaner ./cmd/agent
 
 # Or via Docker (no local Go required):
-docker build -t docker-cleanup-agent:dev .
+docker build -t logs-cleaner:dev .
 ```
 
 ---
@@ -203,3 +203,9 @@ The Go agent preserves all behavior from `claer-docker-logs.sh`:
 | `truncate -s 0` | `cleanup.mode: truncate` |
 
 New capabilities not in the Bash script: dry run mode, Slack/Teams notifications, health endpoint, Prometheus metrics, REST API, SQLite history, log rotation recommendations, self-monitoring, dark/light email themes.
+
+---
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) to get started, and note that all contributors are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md).

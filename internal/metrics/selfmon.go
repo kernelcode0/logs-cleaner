@@ -3,7 +3,7 @@ package metrics
 import (
 	"sync/atomic"
 
-	"github.com/myorg/docker-cleanup-agent/internal/reporting"
+	"github.com/kernelcode0/logs-cleaner/internal/reporting"
 )
 
 // SelfMonitor tracks agent operational health counters using atomic operations.
