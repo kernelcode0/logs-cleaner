@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  cleanup-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: "${VERSION:-dev}"
+    image: docker-cleanup-agent:${VERSION:-latest}
+    container_name: docker-cleanup-agent
+    restart: unless-stopped
+
+    # Run as root so truncation can write to Docker-owned log files.
+    # To run non-root: set host log dir group-write and remove this line.
+    user: "0:0"
+
+    volumes:
+      # Docker socket (read-only for inspect/list; truncation writes directly to log files)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Docker log files (read-write for truncation)
+      - /var/lib/docker/containers:/var/lib/docker/containers:rw
+      # Persistent SQLite database
+      - agent-data:/data
+      # Configuration file
+      - ./config/config.yaml:/etc/docker-cleanup-agent/config.yaml:ro
+
+    ports:
+      - "8080:8080"
+
+    env_file:
+      - .env
+
+    environment:
+      - AGENT_SERVER_ID=${AGENT_SERVER_ID:-production-eu-01}
+      - AGENT_EMAIL_SMTP_PASSWORD=${AGENT_EMAIL_SMTP_PASSWORD}
+      - AGENT_EMAIL_SMTP_USER=${AGENT_EMAIL_SMTP_USER}
+      - AGENT_EMAIL_SMTP_HOST=${AGENT_EMAIL_SMTP_HOST}
+      - AGENT_EMAIL_TO=${AGENT_EMAIL_TO}
+      - AGENT_DRY_RUN=${AGENT_DRY_RUN:-false}
+      - AGENT_NOTIF_SLACK_WEBHOOK_URL=${AGENT_NOTIF_SLACK_WEBHOOK_URL:-}
+      - AGENT_NOTIF_TEAMS_WEBHOOK_URL=${AGENT_NOTIF_TEAMS_WEBHOOK_URL:-}
+      - AGENT_LOG_LEVEL=${AGENT_LOG_LEVEL:-info}
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  agent-data:
+    driver: local

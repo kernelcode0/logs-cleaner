@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Docker Log Cleanup Report</title>
+<style>
+  body{margin:0;padding:20px;background:#1a1a2e;font-family:Arial,sans-serif;color:#e2e8f0}
+  .card{max-width:680px;margin:0 auto;background:#252538;border:1px solid #3d3d3d;border-radius:8px;overflow:hidden}
+  .accent-bar{height:4px;background:linear-gradient(90deg,#6366f1 0%,#8b5cf6 100%)}
+  .header{padding:28px 32px 20px;text-align:center}
+  .header-sub{font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;font-family:Georgia,serif}
+  .header-title{font-size:26px;font-weight:700;color:#f8fafc;font-family:Georgia,serif;margin:0 0 8px}
+  .header-ts{font-size:12px;color:#6b7280;font-family:"Courier New",monospace}
+  .badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:600;margin-top:10px;color:#fff}
+  .badge-ok{background:linear-gradient(90deg,#10b981,#059669)}
+  .badge-dry{background:linear-gradient(90deg,#f59e0b,#d97706)}
+  .meta-row{background:#1e1e30;padding:12px 32px;display:flex;justify-content:space-between;border-bottom:1px solid #3d3d3d}
+  .meta-item{font-size:12px;color:#9ca3af;font-family:"Courier New",monospace}
+  .meta-item strong{color:#e2e8f0}
+  .stats-row{padding:24px 32px;display:flex;gap:0;border-bottom:1px solid #3d3d3d}
+  .stat-box{flex:1;text-align:center;padding:0 16px}
+  .stat-box:first-child{border-right:1px solid #3d3d3d}
+  .stat-num{font-size:42px;font-weight:700;font-family:"Courier New",monospace}
+  .stat-num-blue{color:#6366f1}
+  .stat-num-green{color:#10b981}
+  .stat-label{font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+  .section{padding:20px 32px;border-bottom:1px solid #3d3d3d}
+  .section-title{font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;font-family:Georgia,serif}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .info-col{}
+  .info-item{margin-bottom:10px}
+  .info-key{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:1px}
+  .info-val{font-size:13px;color:#e2e8f0;font-family:"Courier New",monospace;margin-top:2px}
+  .progress-bar-bg{background:#3d3d3d;border-radius:4px;height:6px;margin-top:4px;overflow:hidden}
+  .progress-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#6366f1,#8b5cf6)}
+  .progress-bar-fill-green{background:linear-gradient(90deg,#10b981,#34d399)}
+  .progress-bar-fill-warn{background:linear-gradient(90deg,#f59e0b,#d97706)}
+  .progress-bar-fill-danger{background:linear-gradient(90deg,#ef4444,#dc2626)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#3d3d3d;padding:10px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af}
+  td{padding:10px 12px;border-bottom:1px solid #2d2d40;color:#e2e8f0;font-family:"Courier New",monospace}
+  .no-data{text-align:center;color:#6b7280;font-style:italic;padding:20px}
+  .rec-card{background:#2a2410;border:1px solid #78350f;border-radius:6px;padding:14px 16px;margin-bottom:10px}
+  .rec-title{color:#f59e0b;font-size:12px;font-weight:600;margin-bottom:4px}
+  .rec-msg{color:#d97706;font-size:11px;font-family:"Courier New",monospace}
+  .selfmon-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .selfmon-item{background:#1e1e30;border-radius:6px;padding:10px 14px}
+  .selfmon-label{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:1px}
+  .selfmon-val{font-size:18px;font-weight:700;font-family:"Courier New",monospace;color:#e2e8f0;margin-top:2px}
+  .selfmon-val-warn{color:#f59e0b}
+  .footer{background:#1e1e30;padding:14px 32px;display:flex;justify-content:space-between;align-items:center}
+  .footer-left{font-size:11px;color:#6b7280}
+  .footer-right{font-size:11px;color:#6b7280;font-family:"Courier New",monospace}
+  .trend-table td{font-size:11px}
+  @media(max-width:600px){
+    .info-grid{grid-template-columns:1fr}
+    .stats-row{flex-direction:column}
+    .stat-box:first-child{border-right:none;border-bottom:1px solid #3d3d3d;padding-bottom:16px;margin-bottom:16px}
+    .meta-row{flex-direction:column;gap:6px}
+    .selfmon-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Top accent bar -->
+  <div class="accent-bar"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-sub">Infrastructure Monitoring</div>
+    <div class="header-title">Docker Log Cleanup</div>
+    <div class="header-ts">{{formatTime .GeneratedAt}}</div>
+    {{if .CleanupResult.DryRun}}
+      <span class="badge badge-dry">&#9737; DRY RUN</span>
+    {{else}}
+      <span class="badge badge-ok">&#10003; Completed</span>
+    {{end}}
+  </div>
+
+  <!-- Server meta row -->
+  <div class="meta-row">
+    <div class="meta-item">&#128421; <strong>{{.Server.Hostname}}</strong></div>
+    <div class="meta-item">&#127760; <strong>{{.Server.PublicIP}}</strong></div>
+    <div class="meta-item">&#128279; <strong>{{.ServerID}}</strong></div>
+  </div>
+
+  <!-- Cleanup stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-num stat-num-blue">{{.CleanupResult.LogsCleaned}}</div>
+      <div class="stat-label">Logs Truncated</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num stat-num-green">{{formatMB .CleanupResult.SpaceReclaimedMB}}</div>
+      <div class="stat-label">Space Freed</div>
+    </div>
+  </div>
+
+  <!-- System Information -->
+  <div class="section">
+    <div class="section-title">System Information</div>
+    <div class="info-grid">
+      <!-- Column 1: System -->
+      <div class="info-col">
+        <div class="info-item">
+          <div class="info-key">Operating System</div>
+          <div class="info-val">{{.Server.OSInfo}}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-key">Uptime</div>
+          <div class="info-val">{{.Server.Uptime}}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-key">CPU Load (1m/5m/15m)</div>
+          <div class="info-val">{{cpuLoad .}}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-key">Execution Time</div>
+          <div class="info-val">{{formatDuration .CleanupResult.DurationMS}}</div>
+        </div>
+      </div>
+
+      <!-- Column 2: Docker -->
+      <div class="info-col">
+        <div class="info-item">
+          <div class="info-key">Docker Version</div>
+          <div class="info-val">{{.Docker.Version}}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-key">Images</div>
+          <div class="info-val">{{.Docker.ImageCount}} ({{.Docker.DanglingImageCount}} dangling)</div>
+        </div>
+        <div class="info-item">
+          <div class="info-key">Containers</div>
+          <div class="info-val">{{.Docker.RunningContainers}} running / {{.Docker.TotalContainers}} total</div>
+        </div>
+        <div class="info-item">
+          <div class="info-key">Volumes</div>
+          <div class="info-val">{{.Docker.VolumeCount}} ({{.Docker.UnusedVolumeCount}} unused)</div>
+        </div>
+      </div>
+
+      <!-- Column 3: Resources -->
+      <div class="info-col">
+        <div class="info-item">
+          <div class="info-key">Memory</div>
+          <div class="info-val">{{formatPct .Server.RAMUsedPct}} used</div>
+          <div class="progress-bar-bg">
+            {{if gt .Server.RAMUsedPct 90.0}}
+              <div class="progress-bar-fill progress-bar-fill-danger" style="width:{{pctBarWidth .Server.RAMUsedPct}}"></div>
+            {{else if gt .Server.RAMUsedPct 75.0}}
+              <div class="progress-bar-fill progress-bar-fill-warn" style="width:{{pctBarWidth .Server.RAMUsedPct}}"></div>
+            {{else}}
+              <div class="progress-bar-fill progress-bar-fill-green" style="width:{{pctBarWidth .Server.RAMUsedPct}}"></div>
+            {{end}}
+          </div>
+          <div class="info-key" style="margin-top:4px">{{.Server.RAMUsedFormatted}}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-key">Disk (root)</div>
+          <div class="info-val">{{formatPct .Server.DiskUsedPct}} used</div>
+          <div class="progress-bar-bg">
+            {{if gt .Server.DiskUsedPct 90.0}}
+              <div class="progress-bar-fill progress-bar-fill-danger" style="width:{{pctBarWidth .Server.DiskUsedPct}}"></div>
+            {{else if gt .Server.DiskUsedPct 75.0}}
+              <div class="progress-bar-fill progress-bar-fill-warn" style="width:{{pctBarWidth .Server.DiskUsedPct}}"></div>
+            {{else}}
+              <div class="progress-bar-fill" style="width:{{pctBarWidth .Server.DiskUsedPct}}"></div>
+            {{end}}
+          </div>
+          <div class="info-key" style="margin-top:4px">{{.Server.DiskUsedFormatted}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Space Consumers -->
+  <div class="section">
+    <div class="section-title">Top Space Consumers (Pre-Cleanup)</div>
+    {{if .CleanupResult.TopConsumers}}
+    <table>
+      <thead>
+        <tr>
+          <th>Container</th>
+          <th>Image</th>
+          <th>Size (MB)</th>
+          <th>Growth Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .CleanupResult.TopConsumers}}
+        <tr>
+          <td style="color:#f472b6">{{.ContainerName}}</td>
+          <td>{{.Image}}</td>
+          <td>{{formatMB .SizeMB}}</td>
+          <td>
+            {{range $.ContainerInsights}}
+              {{if eq .ID $.CleanupResult.TopConsumers}}{{end}}
+            {{end}}
+            &mdash;
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+    {{else}}
+    <div class="no-data">No significant log pressure detected.</div>
+    {{end}}
+  </div>
+
+  <!-- Recommendations (conditional) -->
+  {{if hasRecommendations .Recommendations}}
+  <div class="section">
+    <div class="section-title">&#9888; Log Rotation Recommendations</div>
+    {{range .Recommendations}}
+    <div class="rec-card">
+      <div class="rec-title">{{.ContainerName}} &mdash; {{.Image}}</div>
+      <div class="rec-msg">{{.Message}}</div>
+    </div>
+    {{end}}
+  </div>
+  {{end}}
+
+  <!-- Historical Trend -->
+  {{if .RecentRuns}}
+  <div class="section">
+    <div class="section-title">Recent Cleanup History</div>
+    <table class="trend-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Logs Cleaned</th>
+          <th>Space Freed</th>
+          <th>Duration</th>
+          <th>Dry Run</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .RecentRuns}}
+        <tr>
+          <td>{{formatTime .Timestamp}}</td>
+          <td>{{.LogsCleaned}}</td>
+          <td>{{formatMB .SpaceReclaimedMB}}</td>
+          <td>{{formatDuration .ExecutionDurationMS}}</td>
+          <td>{{if .DryRun}}Yes{{else}}No{{end}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{end}}
+
+  <!-- Self-Monitoring -->
+  <div class="section">
+    <div class="section-title">Agent Health</div>
+    <div class="selfmon-grid">
+      <div class="selfmon-item">
+        <div class="selfmon-label">SMTP Failures</div>
+        <div class="selfmon-val {{if gt .SelfMon.SMTPFailures 0}}selfmon-val-warn{{end}}">{{.SelfMon.SMTPFailures}}</div>
+      </div>
+      <div class="selfmon-item">
+        <div class="selfmon-label">Docker API Failures</div>
+        <div class="selfmon-val {{if gt .SelfMon.DockerAPIFailures 0}}selfmon-val-warn{{end}}">{{.SelfMon.DockerAPIFailures}}</div>
+      </div>
+      <div class="selfmon-item">
+        <div class="selfmon-label">Cleanup Errors</div>
+        <div class="selfmon-val {{if gt .SelfMon.CleanupErrors 0}}selfmon-val-warn{{end}}">{{.SelfMon.CleanupErrors}}</div>
+      </div>
+      <div class="selfmon-item">
+        <div class="selfmon-label">Last Run Duration</div>
+        <div class="selfmon-val">{{formatDuration .SelfMon.LastCleanupDurationMS}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">Docker Cleanup Agent &middot; {{.ServerID}}</div>
+    <div class="footer-right">Next run: {{nextRun .NextRunAt}}</div>
+  </div>
+
+  <!-- Bottom accent bar -->
+  <div class="accent-bar"></div>
+
+</div>
+</body>
+</html>

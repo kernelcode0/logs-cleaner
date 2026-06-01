@@ -1,0 +1,52 @@
+server_id: "production-eu-01"
+dry_run: false
+
+cleanup:
+  threshold_mb: 100
+  top_consumers: 5
+  mode: "truncate"
+  excluded_containers:
+    - "db-prod"
+    - "auth-server"
+  log_glob: "/var/lib/docker/containers/**/*-json.log"
+
+schedule:
+  cron: "0 */12 * * *"
+
+email:
+  enabled: true
+  smtp_host: "smtp.example.com"
+  smtp_port: 587
+  smtp_user: ""
+  smtp_password: ""
+  smtp_from: "docker-cleanup@example.com"
+  to:
+    - "ops@example.com"
+  subject_prefix: "[Docker Log Cleanup]"
+  theme: "dark"
+
+notifications:
+  slack:
+    enabled: false
+    webhook_url: ""
+  teams:
+    enabled: false
+    webhook_url: ""
+
+server:
+  listen: ":8080"
+  enabled: true
+
+storage:
+  path: "/data/cleanup.db"
+
+telemetry:
+  public_ip_url: "https://api.ipify.org"
+
+recommendations:
+  window_days: 30
+  trigger_count: 18
+
+log:
+  level: "info"
+  format: "json"
