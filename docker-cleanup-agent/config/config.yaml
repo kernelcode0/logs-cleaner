@@ -36,6 +36,9 @@ notifications:
 server:
   listen: ":8080"
   enabled: true
+  auth:
+    username: ""      # AGENT_SERVER_AUTH_USERNAME — leave empty to disable auth
+    password: ""      # AGENT_SERVER_AUTH_PASSWORD — use env var, never commit plaintext
 
 storage:
   path: "/data/cleanup.db"

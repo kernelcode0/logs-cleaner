@@ -78,8 +78,14 @@ type TeamsConfig struct {
 }
 
 type ServerConfig struct {
-	Listen  string `mapstructure:"listen"`
-	Enabled bool   `mapstructure:"enabled"`
+	Listen   string     `mapstructure:"listen"`
+	Enabled  bool       `mapstructure:"enabled"`
+	Auth     AuthConfig `mapstructure:"auth"`
+}
+
+type AuthConfig struct {
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
 }
 
 type StorageConfig struct {
@@ -119,6 +125,8 @@ func Load() (*Config, error) {
 	v.SetDefault("notifications.teams.enabled", false)
 	v.SetDefault("server.listen", ":8080")
 	v.SetDefault("server.enabled", true)
+	v.SetDefault("server.auth.username", "")
+	v.SetDefault("server.auth.password", "")
 	v.SetDefault("storage.path", "/data/cleanup.db")
 	v.SetDefault("telemetry.public_ip_url", "https://api.ipify.org")
 	v.SetDefault("recommendations.window_days", 30)

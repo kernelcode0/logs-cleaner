@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -40,13 +41,20 @@ func New(
 	r.Use(middleware.Recoverer)
 	r.Use(requestLogger(logger))
 
+	// /health is always open — used by orchestrators and uptime monitors
 	r.Get("/health", HealthHandler(dockerClient, serverID))
-	r.Get("/metrics", reg.Handler().ServeHTTP)
 
-	r.Route("/api", func(r chi.Router) {
-		r.Get("/history", historyHandler(db, serverID))
-		r.Get("/stats", statsHandler(db, serverID))
-		r.Get("/containers", containersHandler(db, serverID))
+	// /metrics and /api/* are protected by Basic Auth if credentials are configured
+	r.Group(func(r chi.Router) {
+		if cfg.Auth.Username != "" {
+			r.Use(basicAuth(cfg.Auth.Username, cfg.Auth.Password))
+		}
+		r.Get("/metrics", reg.Handler().ServeHTTP)
+		r.Route("/api", func(r chi.Router) {
+			r.Get("/history", historyHandler(db, serverID))
+			r.Get("/stats", statsHandler(db, serverID))
+			r.Get("/containers", containersHandler(db, serverID))
+		})
 	})
 
 	return &Server{
@@ -159,6 +167,24 @@ func jsonError(w http.ResponseWriter, code int, msg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(map[string]string{"error": msg}) //nolint:errcheck
+}
+
+// basicAuth returns a middleware that requires HTTP Basic Auth.
+// Uses constant-time comparison to prevent timing attacks.
+func basicAuth(username, password string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			u, p, ok := r.BasicAuth()
+			if !ok ||
+				subtle.ConstantTimeCompare([]byte(u), []byte(username)) != 1 ||
+				subtle.ConstantTimeCompare([]byte(p), []byte(password)) != 1 {
+				w.Header().Set("WWW-Authenticate", `Basic realm="docker-cleanup-agent"`)
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func requestLogger(logger *slog.Logger) func(http.Handler) http.Handler {
